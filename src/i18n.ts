@@ -8,13 +8,13 @@ const zh: Record<string, string> = {
   'nav.favorites': '我的收藏',
   'nav.history': '浏览足迹',
   'nav.settings': '设置',
-  'nav.newRepos2026': '2026 新建项目榜',
-  'nav.topStar': '全站 Star 总榜',
 
   // ── 通用 ──
   'common.today': '今日',
   'common.week': '本周',
   'common.month': '本月',
+  'common.since2026': '2026',
+  'common.alltime': '至今',
   'common.retry': '重试',
   'common.save': '保存',
   'common.cancel': '取消',
@@ -35,6 +35,8 @@ const zh: Record<string, string> = {
   'trending.loadFailed': '加载失败',
   'trending.clickRefresh': '点击「刷新数据」开始加载 Trending 榜单',
   'trending.rankedBy': '排名按 {period} Star 增长数量排序',
+  'trending.rankedByDaily': '排名按 {period} Star 增长数量排序',
+  'trending.rankedByStars': '排名按 Star 总数从高到低排序',
   'trending.noMatch': '暂无符合条件的数据',
   'trending.created': '创建于',
   'trending.active': '活跃于',
@@ -44,6 +46,10 @@ const zh: Record<string, string> = {
   'trending.unfavorite': '取消收藏',
   'trending.chooseFolder': '选择收藏夹',
   'trending.newFolder': '新建收藏夹...',
+  'trending.descSince2026': '2026 年以来新建项目，按 Star 总数从高到低排序',
+  'trending.descAlltime': 'GitHub 全站项目（不限创建时间），按 Star 总数从高到低排序',
+  'trending.langNotSupported': '该榜单不支持按语言筛选',
+  'trending.totalStars': '总 Star',
 
   // ── TrendingDevelopers ──
   'dev.fetching': '正在获取 Trending Developers...',
@@ -51,15 +57,6 @@ const zh: Record<string, string> = {
   'dev.noData': '暂无数据',
   'dev.count': '{n} 位开发者',
   'dev.popularRepo': '热门仓库',
-
-  // ── 全站 / 2026 新建项目榜 ──
-  'top.fetching': '正在获取榜单数据...',
-  'top.translating': '正在翻译描述...',
-  'top.clickRefresh': '点击「刷新数据」开始加载榜单',
-  'top.newReposDesc': '2026 年以来新建项目，按 Star 总数从高到低排序',
-  'top.alltimeDesc': 'GitHub 全站项目（不限创建时间），按 Star 总数从高到低排序',
-  'top.count': '{n} 个项目',
-  'top.viewTotalStars': '总 Star 数',
 
   // ── RepoDetail ──
   'detail.backToList': '返回列表',
@@ -166,12 +163,12 @@ const en: Record<string, string> = {
   'nav.favorites': 'Favorites',
   'nav.history': 'History',
   'nav.settings': 'Settings',
-  'nav.newRepos2026': 'New 2026',
-  'nav.topStar': 'Top Stars',
 
   'common.today': 'Today',
   'common.week': 'This Week',
   'common.month': 'This Month',
+  'common.since2026': '2026',
+  'common.alltime': 'All Time',
   'common.retry': 'Retry',
   'common.save': 'Save',
   'common.cancel': 'Cancel',
@@ -191,6 +188,8 @@ const en: Record<string, string> = {
   'trending.loadFailed': 'Load failed',
   'trending.clickRefresh': 'Click "Refresh" to load Trending list',
   'trending.rankedBy': 'Ranked by {period} Star growth',
+  'trending.rankedByDaily': 'Ranked by {period} Star growth',
+  'trending.rankedByStars': 'Ranked by total Stars',
   'trending.noMatch': 'No matching data',
   'trending.created': 'Created',
   'trending.active': 'Active',
@@ -200,21 +199,16 @@ const en: Record<string, string> = {
   'trending.unfavorite': 'Unfavorite',
   'trending.chooseFolder': 'Choose folder',
   'trending.newFolder': 'New folder...',
+  'trending.descSince2026': 'Projects created since 2026, ranked by total Stars',
+  'trending.descAlltime': 'All GitHub projects (no date limit), ranked by total Stars',
+  'trending.langNotSupported': 'Language filter not supported for this ranking',
+  'trending.totalStars': 'Total Stars',
 
   'dev.fetching': 'Fetching Trending Developers...',
   'dev.clickRefresh': 'Click "Refresh" to load Trending Developers',
   'dev.noData': 'No data',
   'dev.count': '{n} developers',
   'dev.popularRepo': 'Popular Repo',
-
-  // ── Top Repos (New 2026 / All-time Stars) ──
-  'top.fetching': 'Fetching ranking data...',
-  'top.translating': 'Translating descriptions...',
-  'top.clickRefresh': 'Click "Refresh" to load ranking list',
-  'top.newReposDesc': 'Projects created since 2026, ranked by total Stars',
-  'top.alltimeDesc': 'All GitHub projects (no date limit), ranked by total Stars',
-  'top.count': '{n} repos',
-  'top.viewTotalStars': 'Total Stars',
 
   'detail.backToList': 'Back',
   'detail.viewSource': 'View Source',

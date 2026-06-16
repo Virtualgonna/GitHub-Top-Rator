@@ -1,11 +1,11 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import type { Repo } from '../github'
-import { fetchTrending, translateRepos, translateTopic, formatNumber, LANGUAGES } from '../github'
+import { fetchTrending, fetchNewRepos2026, fetchTopStarRepos, translateRepos, translateTopic, formatNumber, LANGUAGES } from '../github'
 import { addHistoryEntry, isRepoFavorited, getFavoriteFolders, addRepoToFolder, removeRepoFromFolder, createFolder } from '../store'
 import { langColor, formatRelativeTime } from '../utils'
 import { useI18n } from '../i18n'
 
-type Period = 'today' | 'week' | 'month'
+type Period = 'today' | 'week' | 'month' | 'since2026' | 'alltime'
 
 type Props = {
   onOpenDetail: (repo: Repo) => void
@@ -33,7 +33,12 @@ export default function TrendingList({ onOpenDetail, active = true }: Props) {
     today: t('common.today'),
     week: t('common.week'),
     month: t('common.month'),
+    since2026: t('common.since2026'),
+    alltime: t('common.alltime'),
   }
+
+  /** 全站 / 2026 总榜模式：不显示周期内增长数（按总 Star 排序） */
+  const isTopMode = period === 'since2026' || period === 'alltime'
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -95,7 +100,14 @@ export default function TrendingList({ onOpenDetail, active = true }: Props) {
     setError(null)
     setProgress(t('trending.fetching'))
     try {
-      const raw = await fetchTrending(currentPeriod, language || undefined)
+      let raw: Repo[]
+      if (currentPeriod === 'since2026') {
+        raw = await fetchNewRepos2026()
+      } else if (currentPeriod === 'alltime') {
+        raw = await fetchTopStarRepos()
+      } else {
+        raw = await fetchTrending(currentPeriod, language || undefined)
+      }
       if (myId !== loadId.current) return
 
       setProgress(t('trending.translating'))
@@ -118,7 +130,10 @@ export default function TrendingList({ onOpenDetail, active = true }: Props) {
   const handlePeriodChange = (p: Period) => {
     setPeriod(p)
     setTopicFilter('')
-    if (loaded) loadData(p)
+    // 切换 period 时数据源不同（trending HTML vs Search API），强制重新加载
+    setLoaded(false)
+    setRepos([])
+    loadData(p)
   }
 
   const allTopics = Array.from(new Set(repos.flatMap(r => r.topics || [])))
@@ -134,14 +149,15 @@ export default function TrendingList({ onOpenDetail, active = true }: Props) {
   const getPeriodGrowth = (repo: Repo, p: Period): number => {
     if (p === 'today') return repo.stars_today ?? 0
     if (p === 'week') return repo.stars_week ?? 0
-    return repo.stars_month ?? 0
+    if (p === 'month') return repo.stars_month ?? 0
+    return 0
   }
 
   return (
     <div className="trending-page">
       <div className="trending-filters">
         <div className="filter-group">
-          {(['today', 'week', 'month'] as Period[]).map(p => (
+          {(['today', 'week', 'month', 'since2026', 'alltime'] as Period[]).map(p => (
             <button
               key={p}
               className={`filter-btn ${period === p ? 'active' : ''}`}
@@ -152,16 +168,19 @@ export default function TrendingList({ onOpenDetail, active = true }: Props) {
           ))}
         </div>
 
-        <select
-          className="filter-select"
-          value={language}
-          onChange={e => { setLanguage(e.target.value); setTopicFilter('') }}
-        >
-          <option value="">{t('trending.allLangs')}</option>
-          {LANGUAGES.filter(Boolean).map(lang => (
-            <option key={lang} value={lang}>{lang}</option>
-          ))}
-        </select>
+        {!isTopMode && (
+          <select
+            className="filter-select"
+            value={language}
+            onChange={e => { setLanguage(e.target.value); setTopicFilter('') }}
+            title={t('trending.langNotSupported')}
+          >
+            <option value="">{t('trending.allLangs')}</option>
+            {LANGUAGES.filter(Boolean).map(lang => (
+              <option key={lang} value={lang}>{lang}</option>
+            ))}
+          </select>
+        )}
 
         {allTopics.length > 0 && (
           <select
@@ -210,7 +229,11 @@ export default function TrendingList({ onOpenDetail, active = true }: Props) {
       {!loading && !error && !loaded && (
         <div className="page-empty">
           <p>{t('trending.clickRefresh')}</p>
-          <p className="page-empty-hint">{t('trending.rankedBy', { period: PERIOD_LABEL[period] })}</p>
+          <p className="page-empty-hint">
+            {isTopMode
+              ? (period === 'since2026' ? t('trending.descSince2026') : t('trending.descAlltime'))
+              : t('trending.rankedBy', { period: PERIOD_LABEL[period] })}
+          </p>
         </div>
       )}
 
@@ -327,10 +350,12 @@ export default function TrendingList({ onOpenDetail, active = true }: Props) {
                       </div>
                     </div>
                   )}
-                  <div className="growth-item active">
-                    <span className="growth-label">{PERIOD_LABEL[period]}</span>
-                    <span className="growth-value">+{periodGrowth.toLocaleString()}</span>
-                  </div>
+                  {!isTopMode && (
+                    <div className="growth-item active">
+                      <span className="growth-label">{PERIOD_LABEL[period]}</span>
+                      <span className="growth-value">+{periodGrowth.toLocaleString()}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             )
