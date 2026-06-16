@@ -7,6 +7,11 @@ import {
 import type { AppSettings, AIModelEntry } from '../store'
 import { testAIConnection } from '../ai'
 import { useI18n } from '../i18n'
+import {
+  CURRENT_VERSION, fetchLatestRelease, formatBytes, formatDate,
+  RELEASES_PAGE,
+} from '../version'
+import type { UpdateCheckResult, ReleaseInfo } from '../version'
 
 type Props = {
   onClose: () => void
@@ -42,6 +47,11 @@ export default function Settings({ onClose }: Props) {
   const [editing, setEditing] = useState<EditingModel | null>(null)
   const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null)
   const [testing, setTesting] = useState(false)
+
+  // ─── 版本更新 ─────────────────────────────────────────────────
+  const [updateResult, setUpdateResult] = useState<UpdateCheckResult | null>(null)
+  const [updateChecking, setUpdateChecking] = useState(false)
+  const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null)
 
   // ─── GitHub Token ─────────────────────────────────────────────────
   const handleSaveGitHub = () => {
@@ -127,6 +137,19 @@ export default function Settings({ onClose }: Props) {
   const handleSetTranslation = (id: string | null) => {
     setTranslationModel(id)
     setSettings(getSettings())
+  }
+
+  // ─── 版本更新 ─────────────────────────────────────────────────
+  const handleCheckUpdate = async () => {
+    if (updateChecking) return
+    setUpdateChecking(true)
+    try {
+      const result = await fetchLatestRelease()
+      setUpdateResult(result)
+      setLastCheckedAt(new Date().toISOString())
+    } finally {
+      setUpdateChecking(false)
+    }
   }
 
   const handleTestModel = async () => {
@@ -412,6 +435,162 @@ export default function Settings({ onClose }: Props) {
                 </p>
               </div>
             )}
+          </div>
+
+          {/* ─── 版本更新 ─────────────────────────────────────── */}
+          <div className="settings-section">
+            <h4 className="settings-section-title">{t('settings.update')}</h4>
+
+            <div className="update-grid">
+              {/* 左：当前版本 + 检查按钮 */}
+              <div className="update-current">
+                <div className="update-label">{t('settings.updateCurrent')}</div>
+                <div className="update-version-current">v{CURRENT_VERSION}</div>
+                <button
+                  className="btn-secondary update-check-btn"
+                  onClick={handleCheckUpdate}
+                  disabled={updateChecking}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="23 4 23 10 17 10" />
+                    <polyline points="1 20 1 14 7 14" />
+                    <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+                  </svg>
+                  {updateChecking ? t('settings.updateChecking') : t('settings.updateCheck')}
+                </button>
+                {lastCheckedAt && (
+                  <div className="update-last-check">
+                    {t('settings.updateLastCheck')}：{formatDate(lastCheckedAt, lang)} {new Date(lastCheckedAt).toLocaleTimeString(lang === 'en' ? 'en-US' : 'zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                )}
+              </div>
+
+              {/* 右：检查结果 */}
+              <div className="update-result">
+                {updateResult === null && (
+                  <div className="update-placeholder">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    <p>{t('settings.updateCheck')}</p>
+                  </div>
+                )}
+
+                {updateResult?.kind === 'up-to-date' && (
+                  <div className="update-card update-card-ok">
+                    <div className="update-card-header">
+                      <span className="update-badge update-badge-ok">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        {t('settings.updateUpToDate')}
+                      </span>
+                    </div>
+                    <div className="update-card-body">
+                      <div className="update-info-row">
+                        <span className="update-info-label">{t('settings.updateLatest')}</span>
+                        <span className="update-info-value">v{updateResult.latest?.version || CURRENT_VERSION}</span>
+                      </div>
+                      {updateResult.latest && (
+                        <div className="update-info-row">
+                          <span className="update-info-label">{t('settings.updatePublishedAt')}</span>
+                          <span className="update-info-value">{formatDate(updateResult.latest.publishedAt, lang)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {updateResult?.kind === 'update-available' && (
+                  <div className="update-card update-card-new">
+                    <div className="update-card-header">
+                      <span className="update-badge update-badge-new">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="8" x2="12" y2="12" />
+                          <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        {t('settings.updateAvailable')}
+                      </span>
+                    </div>
+                    <div className="update-card-body">
+                      <div className="update-info-row">
+                        <span className="update-info-label">{t('settings.updateLatest')}</span>
+                        <span className="update-info-value update-version-new">v{updateResult.latest.version}</span>
+                      </div>
+                      <div className="update-info-row">
+                        <span className="update-info-label">{t('settings.updatePublishedAt')}</span>
+                        <span className="update-info-value">{formatDate(updateResult.latest.publishedAt, lang)}</span>
+                      </div>
+                      {updateResult.latest.assetSize > 0 && (
+                        <div className="update-info-row">
+                          <span className="update-info-label">{t('settings.updateFileSize')}</span>
+                          <span className="update-info-value">{formatBytes(updateResult.latest.assetSize)}</span>
+                        </div>
+                      )}
+                      {updateResult.latest.exeUrl ? (
+                        <>
+                          <a
+                            className="btn-primary update-download-btn"
+                            href={updateResult.latest.exeUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                              <polyline points="7 10 12 15 17 10" />
+                              <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            {t('settings.updateDownload')}
+                          </a>
+                          <p className="update-hint">{t('settings.updateDownloadHint')}</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="update-hint update-hint-warn">{t('settings.updateNoExe')}</p>
+                          <a
+                            className="btn-secondary update-download-btn"
+                            href={updateResult.latest.htmlUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {t('settings.updateViewRelease')}
+                          </a>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {updateResult?.kind === 'error' && (
+                  <div className="update-card update-card-error">
+                    <div className="update-card-header">
+                      <span className="update-badge update-badge-error">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="8" x2="12" y2="12" />
+                          <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        {t('settings.updateError')}
+                      </span>
+                    </div>
+                    <div className="update-card-body">
+                      <p className="update-error-msg">{updateResult.message}</p>
+                      <a
+                        className="btn-text-sm"
+                        href={RELEASES_PAGE}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {t('settings.updateViewRelease')} →
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 

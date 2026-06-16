@@ -145,6 +145,25 @@ const zh: Record<string, string> = {
   'settings.useMyMemory': '使用免费 MyMemory API（无需配置，自动可用）',
   'settings.unknown': '未知',
 
+  // ── 版本更新 ──
+  'settings.update': '版本更新',
+  'settings.updateCurrent': '当前版本',
+  'settings.updateCheck': '检查更新',
+  'settings.updateChecking': '检查中...',
+  'settings.updateLatest': '最新版本',
+  'settings.updatePublishedAt': '发布日期',
+  'settings.updateFileSize': '安装包大小',
+  'settings.updateNotes': '更新说明',
+  'settings.updateAvailable': '发现新版本',
+  'settings.updateUpToDate': '已是最新版本',
+  'settings.updateDownload': '下载更新',
+  'settings.updateViewRelease': '查看 Release',
+  'settings.updateDownloadHint': '下载完成后运行安装包，NSIS 安装器将自动覆盖旧版本（个人配置与数据不会丢失）。',
+  'settings.updateNoExe': '未找到 .exe 安装包资源，请前往 Release 页面手动下载。',
+  'settings.updateError': '检查更新失败',
+  'settings.updateNotReleased': 'GitHub 尚未发布任何 Release',
+  'settings.updateLastCheck': '上次检查',
+
   // ── AI 错误信息 ──
   'ai.errNoApiKey': '未配置 AI API Key',
   'ai.errNoEndpoint': '未配置 AI API Endpoint',
@@ -292,6 +311,25 @@ const en: Record<string, string> = {
   'settings.useAI': 'Using AI model ({name})',
   'settings.useMyMemory': 'Using free MyMemory API (no config needed)',
   'settings.unknown': 'Unknown',
+
+  // ── Version Update ──
+  'settings.update': 'Version Update',
+  'settings.updateCurrent': 'Current Version',
+  'settings.updateCheck': 'Check for Updates',
+  'settings.updateChecking': 'Checking...',
+  'settings.updateLatest': 'Latest Version',
+  'settings.updatePublishedAt': 'Published',
+  'settings.updateFileSize': 'Installer Size',
+  'settings.updateNotes': 'Release Notes',
+  'settings.updateAvailable': 'New version available',
+  'settings.updateUpToDate': 'You are up to date',
+  'settings.updateDownload': 'Download Update',
+  'settings.updateViewRelease': 'View Release',
+  'settings.updateDownloadHint': 'Run the installer after download. NSIS will automatically replace the old version (your settings and data are preserved).',
+  'settings.updateNoExe': 'No .exe installer asset found. Please visit the release page to download manually.',
+  'settings.updateError': 'Update check failed',
+  'settings.updateNotReleased': 'No release published on GitHub yet',
+  'settings.updateLastCheck': 'Last checked',
 
   // ── AI Error Messages ──
   'ai.errNoApiKey': 'AI API Key is not configured',
