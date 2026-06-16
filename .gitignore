@@ -41,3 +41,7 @@ scratch/
 *.njsproj
 *.sln
 *.sw?
+
+# Local build artifacts
+tsc-output.txt
+vite-build.txt

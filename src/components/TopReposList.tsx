@@ -1,23 +1,21 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import type { Repo } from '../github'
-import { fetchTrending, translateRepos, translateTopic, formatNumber, LANGUAGES } from '../github'
+import { fetchNewRepos2026, fetchTopStarRepos, translateRepos, translateTopic, formatNumber } from '../github'
 import { addHistoryEntry, isRepoFavorited, getFavoriteFolders, addRepoToFolder, removeRepoFromFolder, createFolder } from '../store'
 import { langColor, formatRelativeTime } from '../utils'
 import { useI18n } from '../i18n'
 
-type Period = 'today' | 'week' | 'month'
+type TopMode = 'new2026' | 'alltime'
 
 type Props = {
-  onOpenDetail: (repo: Repo) => void
+  mode: TopMode
   /** 视图是否处于激活状态（display !== 'none'）。激活且未加载时自动刷新 */
   active?: boolean
+  onOpenDetail: (repo: Repo) => void
 }
 
-export default function TrendingList({ onOpenDetail, active = true }: Props) {
+export default function TopReposList({ mode, active = true, onOpenDetail }: Props) {
   const { t } = useI18n()
-  const [period, setPeriod] = useState<Period>('today')
-  const [language, setLanguage] = useState('')
-  const [topicFilter, setTopicFilter] = useState('')
   const [repos, setRepos] = useState<Repo[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -29,12 +27,9 @@ export default function TrendingList({ onOpenDetail, active = true }: Props) {
   const pickerRef = useRef<HTMLDivElement>(null)
   const loadId = useRef(0)
 
-  const PERIOD_LABEL: Record<Period, string> = {
-    today: t('common.today'),
-    week: t('common.week'),
-    month: t('common.month'),
-  }
+  const description = mode === 'new2026' ? t('top.newReposDesc') : t('top.alltimeDesc')
 
+  // 收藏夹面板外部点击关闭
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
@@ -46,7 +41,7 @@ export default function TrendingList({ onOpenDetail, active = true }: Props) {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  // 视图首次激活时自动加载数据（“首次进入自动刷新”）
+  // 视图首次激活时自动加载数据
   useEffect(() => {
     if (active && !loaded && !loading) {
       loadData()
@@ -88,17 +83,16 @@ export default function TrendingList({ onOpenDetail, active = true }: Props) {
     setNewFolderName('')
   }
 
-  const loadData = async (p?: Period) => {
-    const currentPeriod = p || period
+  const loadData = async () => {
     const myId = ++loadId.current
     setLoading(true)
     setError(null)
-    setProgress(t('trending.fetching'))
+    setProgress(t('top.fetching'))
     try {
-      const raw = await fetchTrending(currentPeriod, language || undefined)
+      const raw = mode === 'new2026' ? await fetchNewRepos2026() : await fetchTopStarRepos()
       if (myId !== loadId.current) return
 
-      setProgress(t('trending.translating'))
+      setProgress(t('top.translating'))
       const translated = await translateRepos(raw.slice(0, 20))
       if (myId !== loadId.current) return
 
@@ -115,70 +109,19 @@ export default function TrendingList({ onOpenDetail, active = true }: Props) {
     }
   }
 
-  const handlePeriodChange = (p: Period) => {
-    setPeriod(p)
-    setTopicFilter('')
-    if (loaded) loadData(p)
-  }
-
-  const allTopics = Array.from(new Set(repos.flatMap(r => r.topics || [])))
-  const filteredRepos = topicFilter
-    ? repos.filter(r => r.topics?.includes(topicFilter))
-    : repos
-
   const handleCardClick = (repo: Repo) => {
     addHistoryEntry(repo)
     onOpenDetail(repo)
   }
 
-  const getPeriodGrowth = (repo: Repo, p: Period): number => {
-    if (p === 'today') return repo.stars_today ?? 0
-    if (p === 'week') return repo.stars_week ?? 0
-    return repo.stars_month ?? 0
-  }
-
   return (
     <div className="trending-page">
-      <div className="trending-filters">
-        <div className="filter-group">
-          {(['today', 'week', 'month'] as Period[]).map(p => (
-            <button
-              key={p}
-              className={`filter-btn ${period === p ? 'active' : ''}`}
-              onClick={() => handlePeriodChange(p)}
-            >
-              {PERIOD_LABEL[p]}
-            </button>
-          ))}
-        </div>
-
-        <select
-          className="filter-select"
-          value={language}
-          onChange={e => { setLanguage(e.target.value); setTopicFilter('') }}
-        >
-          <option value="">{t('trending.allLangs')}</option>
-          {LANGUAGES.filter(Boolean).map(lang => (
-            <option key={lang} value={lang}>{lang}</option>
-          ))}
-        </select>
-
-        {allTopics.length > 0 && (
-          <select
-            className="filter-select"
-            value={topicFilter}
-            onChange={e => setTopicFilter(e.target.value)}
-          >
-            <option value="">{t('trending.allCategories')}</option>
-            {allTopics.map(t_ => (
-              <option key={t_} value={t_}>{translateTopic(t_)}</option>
-            ))}
-          </select>
-        )}
+      <div className="trending-filters top-repos-filters">
+        <span className="top-repos-desc">{description}</span>
 
         <button
           className="refresh-data-btn"
-          onClick={() => loadData()}
+          onClick={loadData}
           disabled={loading}
         >
           <svg className={loading ? 'spinning' : ''} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -189,32 +132,32 @@ export default function TrendingList({ onOpenDetail, active = true }: Props) {
         </button>
 
         <span className="filter-count">
-          {loaded ? t('trending.reposCount', { n: filteredRepos.length }) : ''}
+          {loaded ? t('top.count', { n: repos.length }) : ''}
         </span>
       </div>
 
       {error && (
         <div className="page-error">
           <p>{error}</p>
-          <button className="btn-secondary" onClick={() => loadData()}>{t('common.retry')}</button>
+          <button className="btn-secondary" onClick={loadData}>{t('common.retry')}</button>
         </div>
       )}
 
       {loading && !error && (
         <div className="page-loading">
           <div className="spinner-lg" />
-          <span>{progress || t('trending.fetching')}</span>
+          <span>{progress || t('top.fetching')}</span>
         </div>
       )}
 
       {!loading && !error && !loaded && (
         <div className="page-empty">
-          <p>{t('trending.clickRefresh')}</p>
-          <p className="page-empty-hint">{t('trending.rankedBy', { period: PERIOD_LABEL[period] })}</p>
+          <p>{t('top.clickRefresh')}</p>
+          <p className="page-empty-hint">{description}</p>
         </div>
       )}
 
-      {!loading && !error && loaded && filteredRepos.length === 0 && (
+      {!loading && !error && loaded && repos.length === 0 && (
         <div className="page-empty">
           <p>{t('trending.noMatch')}</p>
         </div>
@@ -222,14 +165,13 @@ export default function TrendingList({ onOpenDetail, active = true }: Props) {
 
       {!loading && !error && loaded && (
         <div className="trending-list">
-          {filteredRepos.map((repo, index) => {
+          {repos.map((repo, index) => {
             const faved = favState[repo.id] ?? isRepoFavorited(repo.id)
-            const periodGrowth = getPeriodGrowth(repo, period)
 
             return (
               <div
                 key={repo.id}
-                className="trending-card"
+                className="trending-card top-repo-card"
                 onClick={() => handleCardClick(repo)}
               >
                 <span className={`trending-rank rank-${index + 1}`}>{index + 1}</span>
@@ -246,7 +188,7 @@ export default function TrendingList({ onOpenDetail, active = true }: Props) {
                   )}
 
                   <div className="trending-meta">
-                    <span className="meta-item meta-stars">
+                    <span className="meta-item meta-stars" title={t('top.viewTotalStars')}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                       </svg>
@@ -280,11 +222,7 @@ export default function TrendingList({ onOpenDetail, active = true }: Props) {
                   {repo.topics && repo.topics.length > 0 && (
                     <div className="trending-topics">
                       {repo.topics.slice(0, 6).map(tp => (
-                        <span
-                          key={tp}
-                          className="topic-tag clickable"
-                          onClick={e => { e.stopPropagation(); setTopicFilter(tp) }}
-                        >
+                        <span key={tp} className="topic-tag">
                           {translateTopic(tp)}
                         </span>
                       ))}
@@ -292,7 +230,7 @@ export default function TrendingList({ onOpenDetail, active = true }: Props) {
                   )}
                 </div>
 
-                <div className="growth-sidebar" style={{ position: 'relative' }}>
+                <div className="top-repo-sidebar">
                   <button
                     className={`fav-btn-quick ${faved ? 'faved' : ''}`}
                     onClick={e => handleFavClick(e, repo)}
@@ -327,10 +265,6 @@ export default function TrendingList({ onOpenDetail, active = true }: Props) {
                       </div>
                     </div>
                   )}
-                  <div className="growth-item active">
-                    <span className="growth-label">{PERIOD_LABEL[period]}</span>
-                    <span className="growth-value">+{periodGrowth.toLocaleString()}</span>
-                  </div>
                 </div>
               </div>
             )

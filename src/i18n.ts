@@ -8,6 +8,8 @@ const zh: Record<string, string> = {
   'nav.favorites': '我的收藏',
   'nav.history': '浏览足迹',
   'nav.settings': '设置',
+  'nav.newRepos2026': '2026 新建项目榜',
+  'nav.topStar': '全站 Star 总榜',
 
   // ── 通用 ──
   'common.today': '今日',
@@ -49,6 +51,15 @@ const zh: Record<string, string> = {
   'dev.noData': '暂无数据',
   'dev.count': '{n} 位开发者',
   'dev.popularRepo': '热门仓库',
+
+  // ── 全站 / 2026 新建项目榜 ──
+  'top.fetching': '正在获取榜单数据...',
+  'top.translating': '正在翻译描述...',
+  'top.clickRefresh': '点击「刷新数据」开始加载榜单',
+  'top.newReposDesc': '2026 年以来新建项目，按 Star 总数从高到低排序',
+  'top.alltimeDesc': 'GitHub 全站项目（不限创建时间），按 Star 总数从高到低排序',
+  'top.count': '{n} 个项目',
+  'top.viewTotalStars': '总 Star 数',
 
   // ── RepoDetail ──
   'detail.backToList': '返回列表',
@@ -155,6 +166,8 @@ const en: Record<string, string> = {
   'nav.favorites': 'Favorites',
   'nav.history': 'History',
   'nav.settings': 'Settings',
+  'nav.newRepos2026': 'New 2026',
+  'nav.topStar': 'Top Stars',
 
   'common.today': 'Today',
   'common.week': 'This Week',
@@ -193,6 +206,15 @@ const en: Record<string, string> = {
   'dev.noData': 'No data',
   'dev.count': '{n} developers',
   'dev.popularRepo': 'Popular Repo',
+
+  // ── Top Repos (New 2026 / All-time Stars) ──
+  'top.fetching': 'Fetching ranking data...',
+  'top.translating': 'Translating descriptions...',
+  'top.clickRefresh': 'Click "Refresh" to load ranking list',
+  'top.newReposDesc': 'Projects created since 2026, ranked by total Stars',
+  'top.alltimeDesc': 'All GitHub projects (no date limit), ranked by total Stars',
+  'top.count': '{n} repos',
+  'top.viewTotalStars': 'Total Stars',
 
   'detail.backToList': 'Back',
   'detail.viewSource': 'View Source',

@@ -3,12 +3,13 @@ import type { Repo } from './github'
 import { I18nContext, useI18nProvider, useI18n } from './i18n'
 import TrendingList from './components/TrendingList'
 import TrendingDevelopers from './components/TrendingDevelopers'
+import TopReposList from './components/TopReposList'
 import RepoDetail from './components/RepoDetail'
 import Favorites from './components/Favorites'
 import History from './components/History'
 import Settings from './components/Settings'
 
-type View = 'trending' | 'developers' | 'favorites' | 'history'
+type View = 'trending' | 'developers' | 'new2026' | 'alltime' | 'favorites' | 'history'
 
 function AppContent() {
   const { t, lang, setLang } = useI18n()
@@ -58,6 +59,26 @@ function AppContent() {
                 Developers
               </button>
               <button
+                className={`nav-tab ${currentView === 'new2026' ? 'active' : ''}`}
+                onClick={() => handleNavClick('new2026')}
+                title={t('nav.newRepos2026')}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                {t('nav.newRepos2026')}
+              </button>
+              <button
+                className={`nav-tab ${currentView === 'alltime' ? 'active' : ''}`}
+                onClick={() => handleNavClick('alltime')}
+                title={t('nav.topStar')}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                {t('nav.topStar')}
+              </button>
+              <button
                 className={`nav-tab ${currentView === 'favorites' ? 'active' : ''}`}
                 onClick={() => handleNavClick('favorites')}
               >
@@ -102,10 +123,27 @@ function AppContent() {
       <main className="main-content">
         <div style={{ display: selectedRepo ? 'none' : 'block' }}>
           <div style={{ display: currentView === 'trending' ? 'block' : 'none' }}>
-            <TrendingList onOpenDetail={handleOpenDetail} />
+            <TrendingList
+              onOpenDetail={handleOpenDetail}
+              active={!selectedRepo && currentView === 'trending'}
+            />
           </div>
           <div style={{ display: currentView === 'developers' ? 'block' : 'none' }}>
-            <TrendingDevelopers />
+            <TrendingDevelopers active={!selectedRepo && currentView === 'developers'} />
+          </div>
+          <div style={{ display: currentView === 'new2026' ? 'block' : 'none' }}>
+            <TopReposList
+              mode="new2026"
+              active={!selectedRepo && currentView === 'new2026'}
+              onOpenDetail={handleOpenDetail}
+            />
+          </div>
+          <div style={{ display: currentView === 'alltime' ? 'block' : 'none' }}>
+            <TopReposList
+              mode="alltime"
+              active={!selectedRepo && currentView === 'alltime'}
+              onOpenDetail={handleOpenDetail}
+            />
           </div>
           <div style={{ display: currentView === 'favorites' ? 'block' : 'none' }}>
             <Favorites onOpenDetail={handleOpenDetail} />

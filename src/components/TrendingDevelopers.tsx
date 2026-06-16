@@ -1,11 +1,16 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import type { Developer } from '../github'
 import { fetchTrendingDevelopers } from '../github'
 import { useI18n } from '../i18n'
 
 type Period = 'today' | 'week' | 'month'
 
-export default function TrendingDevelopers() {
+type Props = {
+  /** 视图是否处于激活状态（display !== 'none'）。激活且未加载时自动刷新 */
+  active?: boolean
+}
+
+export default function TrendingDevelopers({ active = true }: Props) {
   const { t } = useI18n()
   const [period, setPeriod] = useState<Period>('today')
   const [developers, setDevelopers] = useState<Developer[]>([])
@@ -19,6 +24,14 @@ export default function TrendingDevelopers() {
     week: t('common.week'),
     month: t('common.month'),
   }
+
+  // 视图首次激活时自动加载数据（“首次进入自动刷新”）
+  useEffect(() => {
+    if (active && !loaded && !loading) {
+      loadData()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active])
 
   const loadData = async (p?: Period) => {
     const currentPeriod = p || period

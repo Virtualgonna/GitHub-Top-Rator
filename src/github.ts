@@ -272,6 +272,36 @@ function parseTrendingDevelopers(html: string): Developer[] {
   return developers
 }
 
+/* ─── 全站 / 2026 新建项目排行（GitHub Search API） ─────────────────────── */
+
+/**
+ * 2026 年以来新建项目，Star 总数 TOP 20
+ * 使用 Search API 查询：created:>=2026-01-01 stars:>10
+ */
+export async function fetchNewRepos2026(): Promise<Repo[]> {
+  const cacheKey = 'top-repos:new2026'
+  const cached = getCached(cacheKey)
+  if (cached) return cached
+
+  const result = await searchRepos('created:>=2026-01-01 stars:>10', 20)
+  setCache(cacheKey, result)
+  return result
+}
+
+/**
+ * GitHub 全站 Star 总数 TOP 20（不限制创建时间）
+ * 使用 Search API 查询：stars:>1000（阈值过滤低 Star 噪音仓库）
+ */
+export async function fetchTopStarRepos(): Promise<Repo[]> {
+  const cacheKey = 'top-repos:alltime'
+  const cached = getCached(cacheKey)
+  if (cached) return cached
+
+  const result = await searchRepos('stars:>1000', 20)
+  setCache(cacheKey, result)
+  return result
+}
+
 /* ─── Trending 数据获取（主入口） ─────────────────────────────────── */
 
 /**
