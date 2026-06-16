@@ -1,0 +1,43 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+release
+*.local
+
+# Vite cache
+.vite
+
+# Test coverage
+coverage
+playwright-report
+test-results
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+
+# Legacy / scratch folders (已迁移到 screenshots/ 和 docs/)
+Introduction/
+_tmp/
+scratch/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

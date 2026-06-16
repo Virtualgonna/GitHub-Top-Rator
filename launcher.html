@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="icon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="GitHub Top Radar · 启动器" />
+  <title>GitHub Top Radar · Launcher</title>
+  <style>
+    /* ─────────── Reset & base ─────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+        'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: #1a1d26;
+      background: #f5f6f8;
+      overflow-x: hidden;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ─────────── Animated gradient backdrop (light) ─────────── */
+    .bg {
+      position: fixed; inset: 0; z-index: -2;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(0,71,171,.08) 0%, transparent 45%),
+        radial-gradient(circle at 80% 90%, rgba(0,71,171,.06) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(0,71,171,.03) 0%, transparent 60%),
+        #f5f6f8;
+    }
+    .bg::after {
+      content: ''; position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(26,29,38,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(26,29,38,.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(circle at 50% 50%, black 0%, transparent 80%);
+    }
+
+    /* ─────────── Top bar (language switch) ─────────── */
+    .topbar {
+      position: fixed; top: 0; right: 0; left: 0;
+      display: flex; justify-content: flex-end; align-items: center;
+      padding: 18px 28px;
+      z-index: 10;
+    }
+    .lang-toggle {
+      display: inline-flex; align-items: center;
+      background: rgba(255,255,255,.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid #e2e4e9;
+      border-radius: 999px;
+      padding: 4px;
+      font-size: 13px;
+      box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    }
+    .lang-toggle button {
+      background: transparent; border: none; cursor: pointer;
+      color: #6b7084;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 500;
+      transition: all .2s ease;
+    }
+    .lang-toggle button.active {
+      background: #0047AB;
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(0,71,171,.3);
+    }
+    .lang-toggle button:not(.active):hover { color: #1a1d26; }
+
+    /* ─────────── Main container ─────────── */
+    main {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 100px 24px 60px;
+    }
+
+    /* ─────────── Logo + brand ─────────── */
+    .brand { text-align: center; margin-bottom: 56px; }
+    .logo-frame {
+      width: 280px; max-width: 80vw;
+      aspect-ratio: 16/9;
+      margin: 0 auto 28px;
+      padding: 12px;
+      border-radius: 24px;
+      background: #ffffff;
+      border: 1px solid #e2e4e9;
+      box-shadow:
+        0 20px 60px -20px rgba(0,71,171,.25),
+        0 1px 2px rgba(0,0,0,.04);
+      position: relative;
+      overflow: hidden;
+    }
+    .logo-frame::before {
+      content: ''; position: absolute; inset: -1px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #0047AB, #1e6fd9, #6aa3f0);
+      opacity: .15; z-index: -1;
+      filter: blur(20px);
+    }
+    .logo-frame img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,.08));
+    }
+    h1 {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 700;
+      letter-spacing: -.02em;
+      background: linear-gradient(135deg, #1a1d26 0%, #0047AB 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+    .tagline {
+      color: #6b7084;
+      font-size: clamp(14px, 1.6vw, 16px);
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* ─────────── Launch cards ─────────── */
+    .launchers {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 880px;
+    }
+    .card {
+      position: relative;
+      display: flex; flex-direction: column;
+      padding: 28px 24px;
+      background: #ffffff;
+      border: 1px solid #e2e4e9;
+      border-radius: 18px;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      transition: all .3s cubic-bezier(.4,0,.2,1);
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    }
+    .card::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, transparent 0%, rgba(0,71,171,.04) 100%);
+      opacity: 0; transition: opacity .3s ease;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: #0047AB;
+      box-shadow: 0 12px 32px -12px rgba(0,71,171,.35);
+    }
+    .card:hover::before { opacity: 1; }
+    .card-icon {
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 12px;
+      background: #0047AB;
+      color: #fff;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(0,71,171,.25);
+    }
+    .card-icon svg { width: 22px; height: 22px; stroke-width: 2; }
+    .card-title {
+      font-size: 17px; font-weight: 600;
+      color: #1a1d26;
+      margin-bottom: 6px;
+      position: relative;
+    }
+    .card-desc {
+      font-size: 13px;
+      color: #6b7084;
+      line-height: 1.5;
+      position: relative;
+    }
+    .card-arrow {
+      position: absolute; top: 24px; right: 24px;
+      color: #9498a8;
+      transition: all .3s ease;
+    }
+    .card:hover .card-arrow {
+      color: #0047AB;
+      transform: translate(2px, -2px);
+    }
+
+    /* ─────────── Footer ─────────── */
+    footer {
+      margin-top: 64px;
+      text-align: center;
+      color: #6b7084;
+      font-size: 12px;
+      letter-spacing: .02em;
+    }
+    footer .version {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px;
+      background: #ffffff;
+      border: 1px solid #e2e4e9;
+      border-radius: 999px;
+      box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    }
+    footer .version-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    /* ─────────── Responsive ─────────── */
+    @media (max-width: 640px) {
+      .logo-frame { width: 220px; }
+      main { padding: 80px 16px 40px; }
+      .brand { margin-bottom: 40px; }
+      footer { margin-top: 48px; }
+    }
+
+    /* ─────────── file:// 警告横幅 ─────────── */
+    .notice {
+      position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+      z-index: 100;
+      display: flex; align-items: flex-start; gap: 14px;
+      max-width: 760px; width: calc(100% - 32px);
+      padding: 14px 18px;
+      background: linear-gradient(135deg, rgba(245,158,11,.10), rgba(239,68,68,.10));
+      border: 1px solid rgba(245,158,11,.4);
+      border-radius: 14px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px -10px rgba(0,0,0,.15);
+      color: #92400e;
+      font-size: 13.5px;
+      line-height: 1.6;
+      animation: rise .5s cubic-bezier(.4,0,.2,1) backwards;
+    }
+    .notice[hidden] { display: none; }
+    .notice-icon {
+      font-size: 22px; line-height: 1;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .notice-body { flex: 1; }
+    .notice-title { color: #b45309; font-weight: 600; margin-bottom: 4px; }
+    .notice-body code {
+      background: rgba(0,0,0,.06);
+      padding: 1px 6px; border-radius: 4px;
+      font-family: 'SF Mono', Consolas, monospace;
+      font-size: 12.5px; color: #1a1d26;
+    }
+    .notice-body p { margin: 0; color: #92400e; }
+    .notice-close {
+      background: transparent; border: none; cursor: pointer;
+      color: #b45309; font-size: 22px; line-height: 1;
+      padding: 0 4px; align-self: flex-start;
+      transition: color .2s ease;
+    }
+    .notice-close:hover { color: #1a1d26; }
+
+    /* ─────────── Entry animation ─────────── */
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .brand, .card, footer { animation: rise .7s cubic-bezier(.4,0,.2,1) backwards; }
+    .brand { animation-delay: .1s; }
+    .card:nth-child(1) { animation-delay: .25s; }
+    .card:nth-child(2) { animation-delay: .35s; }
+    .card:nth-child(3) { animation-delay: .45s; }
+    footer { animation-delay: .6s; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+
+  <div class="notice" id="notice" role="alert" hidden>
+    <span class="notice-icon" aria-hidden="true">⚠️</span>
+    <div class="notice-body">
+      <div class="notice-title" data-i18n="notice.title">检测到你正在用 file:// 协议打开页面</div>
+      <p data-i18n="notice.body">直接点击「打开 Web 版」会出现白板（浏览器 CORS 限制）。请运行 <code>scripts\launcher.bat</code> 启动本地服务后再次访问。</p>
+    </div>
+    <button class="notice-close" id="notice-close" aria-label="关闭" type="button">×</button>
+  </div>
+
+  <header class="topbar">
+    <div class="lang-toggle" role="tablist" aria-label="Language">
+      <button id="lang-zh" class="active" role="tab" aria-selected="true">中文</button>
+      <button id="lang-en" role="tab" aria-selected="false">EN</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="brand">
+      <div class="logo-frame">
+        <img src="icon.png" alt="GitHub Top Radar Logo" />
+      </div>
+      <h1 data-i18n="title">GitHub Top Radar</h1>
+      <p class="tagline" data-i18n="tagline">发现 GitHub 上正在崛起的开源项目与开发者，AI 助你洞察趋势。</p>
+    </section>
+
+    <section class="launchers">
+      <a class="card" href="dist/index.html" id="card-web">
+        <div class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+        </div>
+        <div class="card-title" data-i18n="card.web.title">打开 Web 版</div>
+        <div class="card-desc" data-i18n="card.web.desc">直接在浏览器中启动应用，无需安装。</div>
+        <span class="card-arrow" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 17L17 7M7 7h10v10"/>
+          </svg>
+        </span>
+      </a>
+
+      <a class="card" href="release/GitHub Top Radar Setup 1.0.0.exe" id="card-desktop" download>
+        <div class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+        </div>
+        <div class="card-title" data-i18n="card.desktop.title">下载桌面版</div>
+        <div class="card-desc" data-i18n="card.desktop.desc">Windows NSIS 安装包（98 MB），含 AI 总结和收藏夹功能。</div>
+        <span class="card-arrow" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          </svg>
+        </span>
+      </a>
+
+      <a class="card" href="https://github.com/" id="card-repo" target="_blank" rel="noopener noreferrer">
+        <div class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+          </svg>
+        </div>
+        <div class="card-title" data-i18n="card.repo.title">项目仓库</div>
+        <div class="card-desc" data-i18n="card.repo.desc">查看源代码、提交 Issue、贡献改进建议。</div>
+        <span class="card-arrow" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/>
+          </svg>
+        </span>
+      </a>
+    </section>
+
+    <footer>
+      <span class="version">
+        <span class="version-dot"></span>
+        <span data-i18n="footer.version">v1.0.0 · 就绪</span>
+      </span>
+    </footer>
+  </main>
+
+  <script>
+    // ─────────── i18n dictionary ───────────
+    const I18N = {
+      zh: {
+        title:    'GitHub Top Radar',
+        tagline:  '发现 GitHub 上正在崛起的开源项目与开发者，AI 助你洞察趋势。',
+        'card.web.title':    '打开 Web 版',
+        'card.web.desc':     '直接在浏览器中启动应用，无需安装。',
+        'card.desktop.title':'下载桌面版',
+        'card.desktop.desc': 'Windows NSIS 安装包（98 MB），含 AI 总结和收藏夹功能。',
+        'card.repo.title':   '项目仓库',
+        'card.repo.desc':    '查看源代码、提交 Issue、贡献改进建议。',
+        'footer.version':    'v1.0.0 · 就绪',
+        'notice.title':      '检测到你正在用 file:// 协议打开页面',
+        'notice.body':       '直接点击「打开 Web 版」会出现白板（浏览器 CORS 限制）。请运行 scripts\\launcher.bat 启动本地服务后再次访问。',
+        htmlLang: 'zh-CN',
+      },
+      en: {
+        title:    'GitHub Top Radar',
+        tagline:  'Discover rising open-source projects and developers on GitHub, with AI-powered insights.',
+        'card.web.title':    'Open Web App',
+        'card.web.desc':     'Launch directly in your browser — no install required.',
+        'card.desktop.title':'Download Desktop',
+        'card.desktop.desc': 'Windows NSIS installer (98 MB) with AI summary and favorites.',
+        'card.repo.title':   'Source Repository',
+        'card.repo.desc':    'Browse source code, report issues, and contribute.',
+        'footer.version':    'v1.0.0 · Ready',
+        'notice.title':      'You are opening this page via the file:// protocol',
+        'notice.body':       'Clicking “Open Web App” will show a blank screen (browser CORS restriction). Please run scripts\\launcher.bat to start the local server, then reopen this page.',
+        htmlLang: 'en',
+      },
+    };
+
+    function applyLang(lang) {
+      const dict = I18N[lang] || I18N.zh;
+      document.documentElement.lang = dict.htmlLang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) el.textContent = dict[key];
+      });
+      document.getElementById('lang-zh').classList.toggle('active', lang === 'zh');
+      document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+      document.getElementById('lang-zh').setAttribute('aria-selected', lang === 'zh');
+      document.getElementById('lang-en').setAttribute('aria-selected', lang === 'en');
+      try { localStorage.setItem('launcher.lang', lang); } catch {}
+    }
+
+    document.getElementById('lang-zh').addEventListener('click', () => applyLang('zh'));
+    document.getElementById('lang-en').addEventListener('click', () => applyLang('en'));
+
+    // Init: saved → browser → default
+    let saved = null;
+    try { saved = localStorage.getItem('launcher.lang'); } catch {}
+    const initial = saved || (navigator.language?.startsWith('en') ? 'en' : 'zh');
+    applyLang(initial);
+
+    // ─────────── file:// 协议检测 & 友好提示 ───────────
+    // 双击 launcher.html 时浏览器使用 file:// 协议，<script type="module"> 被 CORS 拒绝加载。
+    // 此时点击「打开 Web 版」会导致 dist/index.html React 不渲染 → 白板。
+    // 在 file:// 下顶都显示顶部横幅，并拦截 Web 卡片的默认跳转。
+    const isFile = location.protocol === 'file:';
+    const noticeEl = document.getElementById('notice');
+    const noticeClose = document.getElementById('notice-close');
+
+    if (isFile) {
+      noticeEl.hidden = false;
+    }
+    noticeClose?.addEventListener('click', () => { noticeEl.hidden = true; });
+
+    const webCard = document.getElementById('card-web');
+    webCard?.addEventListener('click', (e) => {
+      if (isFile) {
+        e.preventDefault();
+        const msg = (initial === 'en')
+          ? 'You are opening this page via file://.\n\nThe browser will block React from loading (CORS), causing a blank screen.\n\nPlease run scripts\\launcher.bat (or `npm run launcher`) to start the local server, then visit:\n\nhttp://localhost:5180/'
+          : '你正在用 file:// 协议打开本页面。\n\n浏览器会拒绝加载 React（(CORS 限制），导致点「打开 Web 版」后是白板。\n\n请双击运行 scripts\\launcher.bat（或在命令行执行 npm run launcher）启动本地服务，然后访问：\n\nhttp://localhost:5180/';
+        alert(msg);
+      }
+    });
+  </script>
+</body>
+</html>
